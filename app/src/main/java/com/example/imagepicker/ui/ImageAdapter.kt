@@ -34,8 +34,8 @@ class ImageAdapter(
 
     private val itemClickListener: ((view: View, position: Int) -> Unit)= { view: View, position: Int ->
         isExpanded = !isExpanded
-        expandSubject.onNext(isExpanded)
         onClickListener?.invoke(view, position)
+        expandSubject.onNext(isExpanded)
     }
 
     override fun onBindViewHolder(holder: ImageViewHolder, position: Int) {
@@ -60,11 +60,7 @@ class ImageViewHolder(
         expandObservable.subscribe { isExpanded ->
             itemView.run {
                 if (isAttachedToWindow) {
-                    if (isExpanded) {
-                        Animations.increase(this, 600, 900)
-                    } else {
-                        Animations.decrease(this, 300, 300)
-                    }
+                    changeSizeSmoother(isExpanded)
                 } else {
                     changeSize(isExpanded)
                 }
@@ -72,12 +68,24 @@ class ImageViewHolder(
         }
     }
 
+    fun changeSizeSmoother(isExpanded: Boolean) {
+        itemView.run {
+            if (isExpanded) {
+                Animations.increaseSize(this, 600)
+            } else {
+                Animations.decreaseSize(this, 300)
+            }
+        }
+    }
+
     fun changeSize(isExpanded: Boolean) {
         itemView.run {
             if (isExpanded) {
-                Animations.increase(this, 600, 900)
+                itemView.layoutParams.width = 600
+                itemView.requestLayout()
             } else {
-                Animations.decrease(this, 300, 300)
+                itemView.layoutParams.width = 300
+                itemView.requestLayout()
             }
         }
     }

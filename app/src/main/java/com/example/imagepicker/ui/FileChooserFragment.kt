@@ -1,14 +1,11 @@
 package com.example.imagepicker.ui
 
-import android.app.Activity
-import android.database.Cursor
 import android.net.Uri
 import android.os.Bundle
 import android.provider.MediaStore
-import android.provider.MediaStore.MediaColumns
 import android.view.View
-import androidx.core.view.isVisible
 import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 import com.example.imagepicker.BaseFragment
 import com.example.imagepicker.R
 import kotlinx.android.synthetic.main.f_file_chooser.*
@@ -29,28 +26,43 @@ class FileChooserFragment : BaseFragment() {
         ImageAdapter(
             getAllShownImagesPath()
         ) { view, position ->
-            file_button.isVisible = adapter.isExpanded
-            (rv_images.layoutManager as? LinearLayoutManager)?.scrollToPositionWithOffset(position, 0);
+            if (adapter.isExpanded) {
+                Animations.increaseSize(rv_images, height = 900)
+            } else {
+                Animations.decreaseSize(rv_images, height = 300)
+            }
+            rv_images.requestLayout()
+            (rv_images.layoutManager as? SmoothLinearManager)?.scrollToPositionWithOffset(position, 50)
+            if (adapter.isExpanded) {
+                Animations.collapse(file_button)
+            } else {
+                Animations.encollapse(file_button, 150)
+            }
         }
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        rv_images.adapter = adapter
-        hadleViews()
+        initRecycler()
+        haтdleViews()
     }
 
-    fun hadleViews() {
+    private fun initRecycler() {
+        rv_images.adapter = adapter
+        rv_images.layoutManager = SmoothLinearManager(requireContext())
+    }
+
+    private fun haтdleViews() {
         cancel_button.setOnClickListener {
             handleCancel()
         }
     }
 
-    fun handleCancel() {
-        activity?.supportFragmentManager?.popBackStack()
+    private fun handleCancel() {
+        activity?.supportFragmentManager?.popBackStackImmediate()
     }
 
-    fun getAllShownImagesPath(): List<Uri> {
+    private fun getAllShownImagesPath(): List<Uri> {
         val uriExternal: Uri = MediaStore.Images.Media.EXTERNAL_CONTENT_URI
         val listOfAllImages = mutableListOf<Uri>()
         val projection = arrayOf(MediaStore.Images.Media._ID)
